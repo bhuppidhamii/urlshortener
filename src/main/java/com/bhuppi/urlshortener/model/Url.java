@@ -20,5 +20,9 @@ public class Url {
     @Column(nullable = false, unique = true)
     private String shortCode;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
 }
