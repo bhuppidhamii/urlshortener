@@ -1,5 +1,6 @@
 package com.bhuppi.urlshortener.controller;
 
+import com.bhuppi.urlshortener.dto.AnalyticsResponse;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.service.UrlService;
@@ -9,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api")
@@ -28,5 +32,21 @@ public class UrlController {
         return ResponseEntity.status(302)
                 .location(URI.create(originalUrl))
                 .<Void>build();
+    }
+
+    @GetMapping("/analytics/{shortCode}")
+    public ResponseEntity<AnalyticsResponse> getAnalytics(
+            @PathVariable String shortCode) {
+
+        Url url = urlService.getAnalytics(shortCode);
+
+        AnalyticsResponse response = new AnalyticsResponse(
+                url.getOriginalUrl(),
+                url.getShortCode(),
+                url.getClickCount(),
+                url.getCreatedAt(),
+                url.getExpiresAt());
+        // System.err.println(response);
+        return ResponseEntity.ok(response);
     }
 }

@@ -33,8 +33,7 @@ public class UrlService {
     public String getOriginalUrl(String shortCode) {
 
         Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() ->
-                new UrlNotFoundException("Short code not found: " + shortCode));
+                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
 
         if (LocalDateTime.now().isAfter(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
@@ -43,6 +42,12 @@ public class UrlService {
         urlRepository.save(url);
 
         return url.getOriginalUrl();
+    }
 
+    public Url getAnalytics(String shortCode) {
+
+        Url url = urlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
+        return url;
     }
 }
