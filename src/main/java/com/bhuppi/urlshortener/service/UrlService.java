@@ -21,10 +21,11 @@ public class UrlService {
         Url url = new Url();
         url.setOriginalUrl(request.getOriginalUrl());
         url.setShortCode(UUID.randomUUID().toString().substring(0, 8));
+        url.setClickCount(0L);
 
         LocalDateTime now = LocalDateTime.now();
         url.setCreatedAt(now);
-        url.setExpiresAt(now.minusDays(request.getExpiresInDays()));
+        url.setExpiresAt(now.plusDays(request.getExpiresInDays()));
 
         return urlRepository.save(url);
     }
@@ -38,6 +39,8 @@ public class UrlService {
         if (LocalDateTime.now().isAfter(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
         }
+        url.setClickCount(url.getClickCount() + 1);
+        urlRepository.save(url);
 
         return url.getOriginalUrl();
 
