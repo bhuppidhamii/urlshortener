@@ -31,7 +31,6 @@ public class UrlService {
     }
 
     public String getOriginalUrl(String shortCode) {
-
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
 
@@ -45,7 +44,6 @@ public class UrlService {
     }
 
     public Url getAnalytics(String shortCode) {
-
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
         return url;

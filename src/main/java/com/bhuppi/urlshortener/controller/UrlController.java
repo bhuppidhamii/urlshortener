@@ -40,13 +40,14 @@ public class UrlController {
 
         Url url = urlService.getAnalytics(shortCode);
 
-        AnalyticsResponse response = new AnalyticsResponse(
-                url.getOriginalUrl(),
-                url.getShortCode(),
-                url.getClickCount(),
-                url.getCreatedAt(),
-                url.getExpiresAt());
-        // System.err.println(response);
+        AnalyticsResponse response = AnalyticsResponse.builder()
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .clickCount(url.getClickCount())
+                .createdAt(url.getCreatedAt())
+                .expiresAt(url.getExpiresAt())
+                .build();
+                
         return ResponseEntity.ok(response);
     }
 }
