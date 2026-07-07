@@ -1,6 +1,7 @@
 package com.bhuppi.urlshortener.controller;
 
 import com.bhuppi.urlshortener.dto.AnalyticsResponse;
+import com.bhuppi.urlshortener.dto.SearchResponse;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.service.UrlService;
@@ -10,9 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -47,7 +46,24 @@ public class UrlController {
                 .createdAt(url.getCreatedAt())
                 .expiresAt(url.getExpiresAt())
                 .build();
-                
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchResponse>> searchUrls(
+            @RequestParam String keyword) {
+
+        List<Url> urls = urlService.searchUrls(keyword);
+
+        List<SearchResponse> response = urls.stream()
+                .map(url -> SearchResponse.builder()
+                        .originalUrl(url.getOriginalUrl())
+                        .shortCode(url.getShortCode())
+                        .clickCount(url.getClickCount())
+                        .build())
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 }

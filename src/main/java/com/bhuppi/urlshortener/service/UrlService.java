@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Service
 public class UrlService {
@@ -47,5 +48,9 @@ public class UrlService {
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
         return url;
+    }
+
+    public List<Url> searchUrls(String keyword) {
+        return urlRepository.findByOriginalUrlContainingIgnoreCase(keyword);
     }
 }
