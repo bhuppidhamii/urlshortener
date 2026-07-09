@@ -7,7 +7,9 @@ import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
@@ -50,7 +52,12 @@ public class UrlService {
         return url;
     }
 
-    public List<Url> searchUrls(String keyword) {
-        return urlRepository.findByOriginalUrlContainingIgnoreCase(keyword);
+    public Page<Url> searchUrls(String keyword, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return urlRepository.findByOriginalUrlContainingIgnoreCase(
+                keyword,
+                pageable);
     }
 }

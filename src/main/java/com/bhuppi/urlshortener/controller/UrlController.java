@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Page;
 import java.net.URI;
 import java.util.List;
 
@@ -51,18 +51,21 @@ public class UrlController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<SearchResponse>> searchUrls(
-            @RequestParam String keyword) {
+    public ResponseEntity<Page<SearchResponse>> searchUrls(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        List<Url> urls = urlService.searchUrls(keyword);
+        Page<Url> urls = urlService.searchUrls(keyword, page, size);
+        System.out.println(urls);
 
-        List<SearchResponse> response = urls.stream()
-                .map(url -> SearchResponse.builder()
-                        .originalUrl(url.getOriginalUrl())
-                        .shortCode(url.getShortCode())
-                        .clickCount(url.getClickCount())
-                        .build())
-                .toList();
+        // urls.map(...) -> This is not Stream.map()
+        // this is -> Page.map()
+        Page<SearchResponse> response = urls.map(url -> SearchResponse.builder()
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .clickCount(url.getClickCount())
+                .build());
 
         return ResponseEntity.ok(response);
     }
