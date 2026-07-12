@@ -1,6 +1,8 @@
 package com.bhuppi.urlshortener.service;
 
 import com.bhuppi.urlshortener.dto.ShortenRequest;
+import com.bhuppi.urlshortener.enums.SortDirection;
+import com.bhuppi.urlshortener.enums.SortField;
 import com.bhuppi.urlshortener.exception.UrlExpiredException;
 import com.bhuppi.urlshortener.exception.UrlNotFoundException;
 import com.bhuppi.urlshortener.model.Url;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class UrlService {
@@ -52,9 +55,13 @@ public class UrlService {
         return url;
     }
 
-    public Page<Url> searchUrls(String keyword, int page, int size) {
+    public Page<Url> searchUrls(String keyword, int page, int size, SortField sortField, SortDirection direction) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort = Sort.by(
+                direction.toSpringDirection(),
+                sortField.getFieldName());
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         return urlRepository.findByOriginalUrlContainingIgnoreCase(
                 keyword,

@@ -3,6 +3,8 @@ package com.bhuppi.urlshortener.controller;
 import com.bhuppi.urlshortener.dto.AnalyticsResponse;
 import com.bhuppi.urlshortener.dto.SearchResponse;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
+import com.bhuppi.urlshortener.enums.SortDirection;
+import com.bhuppi.urlshortener.enums.SortField;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.service.UrlService;
 import jakarta.validation.Valid;
@@ -54,10 +56,12 @@ public class UrlController {
     public ResponseEntity<Page<SearchResponse>> searchUrls(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "CREATED_AT") SortField sortField,
+            @RequestParam(defaultValue = "DESC") SortDirection direction) {
 
-        Page<Url> urls = urlService.searchUrls(keyword, page, size);
-        System.out.println(urls);
+        Page<Url> urls = urlService.searchUrls(keyword, page, size, sortField, direction);
+        // System.out.println(urls);
 
         // urls.map(...) -> This is not Stream.map()
         // this is -> Page.map()
