@@ -1,12 +1,14 @@
 package com.bhuppi.urlshortener.service;
 
+import com.bhuppi.urlshortener.dto.PageRequestDto;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
-import com.bhuppi.urlshortener.enums.SortDirection;
-import com.bhuppi.urlshortener.enums.SortField;
+import com.bhuppi.urlshortener.dto.search.SearchFilterRequest;
+
 import com.bhuppi.urlshortener.exception.UrlExpiredException;
 import com.bhuppi.urlshortener.exception.UrlNotFoundException;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.repository.UrlRepository;
+import com.bhuppi.urlshortener.specification.UrlSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -14,8 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.List;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 @Service
 public class UrlService {
@@ -55,16 +57,47 @@ public class UrlService {
         return url;
     }
 
-    public Page<Url> searchUrls(String keyword, int page, int size, SortField sortField, SortDirection direction) {
+    public Page<Url> searchUrls(SearchFilterRequest searchFilter, PageRequestDto pageRequestDto) {
 
         Sort sort = Sort.by(
-                direction.toSpringDirection(),
-                sortField.getFieldName());
+                pageRequestDto.getDirection().toSpringDirection(),
+                pageRequestDto.getSortField().getFieldName());
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Specification<Url> specification = Specification.unrestricted();
 
-        return urlRepository.findByOriginalUrlContainingIgnoreCase(
-                keyword,
+        if (searchFilter.getKeyword() != null && !searchFilter.getKeyword().isBlank()) {
+            specification = specification.and(
+                    UrlSpecification.hasKeyword(searchFilter.getKeyword()));
+        }
+        if (searchFilter.getMinClicks() != null) {
+            specification = specification.and(UrlSpecification.hasMinClicks(searchFilter.getMinClicks()));
+        }
+        if (searchFilter.getMaxClicks() != null) {
+            specification = specification.and(
+                    UrlSpecification.hasMaxClicks(searchFilter.getMaxClicks()));
+        }
+        if (searchFilter.getCreatedAfter() != null) {
+            specification = specification.and(
+                    UrlSpecification.hasCreatedAfter(searchFilter.getCreatedAfter()));
+        }
+        if (searchFilter.getExpiresBefore() != null) {
+            specification = specification.and(UrlSpecification.hasExpiresBefore(searchFilter.getExpiresBefore()));
+        }
+        LocalDateTime now = LocalDateTime.now();
+
+        if (Boolean.TRUE.equals(searchFilter.getActive())) {
+            specification = specification.and(
+                    UrlSpecification.hasExpiresAfter(now));
+        }
+
+        if (Boolean.FALSE.equals(searchFilter.getActive())) {
+            specification = specification.and(
+                    UrlSpecification.hasExpiresBefore(now));
+        }
+
+        Pageable pageable = PageRequest.of(pageRequestDto.getPage(), pageRequestDto.getSize(), sort);
+        return urlRepository.findAll(
+                specification,
                 pageable);
     }
 }

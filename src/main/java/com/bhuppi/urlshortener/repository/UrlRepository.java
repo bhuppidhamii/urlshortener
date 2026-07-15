@@ -7,10 +7,11 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public interface UrlRepository extends JpaRepository<Url, Long> {
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface UrlRepository extends JpaRepository<Url, Long>,
+        JpaSpecificationExecutor<Url> {
+
     Optional<Url> findByShortCode(String shortCode);
 
-    Page<Url> findByOriginalUrlContainingIgnoreCase(
-            String keyword,
-            Pageable pageable);
 }
