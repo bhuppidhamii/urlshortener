@@ -6,6 +6,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.bhuppi.urlshortener.dto.ErrorResponse;
+
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,19 +27,31 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UrlNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleUrlNotFound(UrlNotFoundException ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    public ResponseEntity<ErrorResponse> handleUrlNotFound(
+            UrlNotFoundException ex) {
+
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(error);
     }
 
     @ExceptionHandler(UrlExpiredException.class)
-    public ResponseEntity<Map<String, String>> handleUrlExpired(
+    public ResponseEntity<ErrorResponse> handleUrlExpired(
             UrlExpiredException ex) {
 
-        Map<String, String> error = new HashMap<>();
-
-        error.put("error", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+                .status(HttpStatus.GONE.value())
+                .error(HttpStatus.GONE.getReasonPhrase())
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
 
         return ResponseEntity
                 .status(HttpStatus.GONE)
