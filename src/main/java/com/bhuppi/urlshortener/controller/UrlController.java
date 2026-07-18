@@ -4,11 +4,17 @@ import com.bhuppi.urlshortener.dto.AnalyticsResponse;
 import com.bhuppi.urlshortener.dto.PageRequestDto;
 import com.bhuppi.urlshortener.dto.SearchResponse;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
+import com.bhuppi.urlshortener.dto.ShortenResponse;
 import com.bhuppi.urlshortener.dto.search.SearchFilterRequest;
 import com.bhuppi.urlshortener.enums.SortDirection;
 import com.bhuppi.urlshortener.enums.SortField;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.service.UrlService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +25,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@Tag(name = "URL Management", description = "Operations for creating, searching, and redirecting shortened URLs.")
 public class UrlController {
 
     @Autowired
     private UrlService urlService;
 
+    @Operation(summary = "Create a shortened URL", description = "Creates a new shortened URL from the provided original URL.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Short URL created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid URL provided")
+    })
     @PostMapping("/shorten")
-    public ResponseEntity<Url> shortenUrl(@Valid @RequestBody ShortenRequest request) {
+    public ResponseEntity<ShortenResponse> shortenUrl(@Valid @RequestBody ShortenRequest request) {
         return ResponseEntity.ok(urlService.shortenUrl(request));
     }
 

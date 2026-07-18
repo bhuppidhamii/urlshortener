@@ -2,6 +2,7 @@ package com.bhuppi.urlshortener.service;
 
 import com.bhuppi.urlshortener.dto.PageRequestDto;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
+import com.bhuppi.urlshortener.dto.ShortenResponse;
 import com.bhuppi.urlshortener.dto.search.SearchFilterRequest;
 
 import com.bhuppi.urlshortener.exception.UrlExpiredException;
@@ -25,7 +26,7 @@ public class UrlService {
     @Autowired
     private UrlRepository urlRepository;
 
-    public Url shortenUrl(ShortenRequest request) {
+    public ShortenResponse shortenUrl(ShortenRequest request) {
         Url url = new Url();
         url.setOriginalUrl(request.getOriginalUrl());
         url.setShortCode(UUID.randomUUID().toString().substring(0, 8));
@@ -34,8 +35,13 @@ public class UrlService {
         LocalDateTime now = LocalDateTime.now();
         url.setCreatedAt(now);
         url.setExpiresAt(now.plusDays(request.getExpiresInDays()));
+        Url savedUrl = urlRepository.save(url);
 
-        return urlRepository.save(url);
+        return ShortenResponse.builder()
+                .shortCode(savedUrl.getShortCode())
+                .originalUrl(savedUrl.getOriginalUrl())
+                .createdAt(savedUrl.getCreatedAt())
+                .build();
     }
 
     public String getOriginalUrl(String shortCode) {

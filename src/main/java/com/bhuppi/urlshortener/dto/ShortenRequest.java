@@ -1,5 +1,6 @@
 package com.bhuppi.urlshortener.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -10,6 +11,10 @@ import lombok.Data;
 
 @Data
 public class ShortenRequest {
+    @Schema(
+        description = "The original URL that should be shortened",
+        example = "https://www.google.com"
+    )
     @NotBlank(message = "URL Cannot be empty")
     @Pattern(regexp = "^(https?://)([\\w\\-]+\\.)+[\\w\\-]+(/.*)?$", message = "Invalid URL format. Must start with http:// or https://")
     private String originalUrl;
