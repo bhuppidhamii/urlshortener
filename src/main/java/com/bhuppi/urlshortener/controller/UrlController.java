@@ -22,11 +22,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import java.net.URI;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api")
 @Tag(name = "URL Management", description = "Operations for creating, searching, and redirecting shortened URLs.")
 public class UrlController {
+    private static final Logger logger = LoggerFactory.getLogger(UrlController.class);
+    
 
     @Autowired
     private UrlService urlService;
@@ -38,6 +42,7 @@ public class UrlController {
     })
     @PostMapping("/shorten")
     public ResponseEntity<ShortenResponse> shortenUrl(@Valid @RequestBody ShortenRequest request) {
+        logger.info("Received request to shorten URL");
         return ResponseEntity.ok(urlService.shortenUrl(request));
     }
 

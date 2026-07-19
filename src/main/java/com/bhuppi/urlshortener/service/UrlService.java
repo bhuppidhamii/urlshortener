@@ -19,12 +19,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UrlService {
 
     @Autowired
     private UrlRepository urlRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UrlService.class);
 
     public ShortenResponse shortenUrl(ShortenRequest request) {
         Url url = new Url();
@@ -35,8 +38,11 @@ public class UrlService {
         LocalDateTime now = LocalDateTime.now();
         url.setCreatedAt(now);
         url.setExpiresAt(now.plusDays(request.getExpiresInDays()));
-        Url savedUrl = urlRepository.save(url);
 
+        logger.info("Creating short URL for original URL: {}", request.getOriginalUrl());
+
+        Url savedUrl = urlRepository.save(url);
+        logger.info("Successfully created short URL with code: {}", savedUrl.getShortCode());
         return ShortenResponse.builder()
                 .shortCode(savedUrl.getShortCode())
                 .originalUrl(savedUrl.getOriginalUrl())
