@@ -1,6 +1,7 @@
 package com.bhuppi.urlshortener.auth.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.bhuppi.urlshortener.auth.dto.RegisterRequest;
 import com.bhuppi.urlshortener.auth.dto.RegisterResponse;
@@ -9,9 +10,13 @@ import com.bhuppi.urlshortener.auth.entity.User;
 import com.bhuppi.urlshortener.auth.repository.UserRepository;
 import com.bhuppi.urlshortener.exception.UserAlreadyExistsException;
 
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class AuthService {
-    UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder = null;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public RegisterResponse register(RegisterRequest request) {
 
