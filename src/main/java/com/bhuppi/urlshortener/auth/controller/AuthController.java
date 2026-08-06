@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bhuppi.urlshortener.auth.dto.LoginRequest;
+import com.bhuppi.urlshortener.auth.dto.LoginResponse;
 import com.bhuppi.urlshortener.auth.dto.RegisterRequest;
 import com.bhuppi.urlshortener.auth.dto.RegisterResponse;
 import com.bhuppi.urlshortener.auth.service.AuthService;
@@ -41,4 +43,17 @@ public class AuthController {
                 .body(response);
     }
 
+    @Operation(summary = "Login user", description = "Authenticates a user and returns a JWT token.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Login successful"),
+            @ApiResponse(responseCode = "401", description = "Invalid email or password")
+    })
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse response = authService.login(request);
+
+        return ResponseEntity.ok(response);
+    }
 }
