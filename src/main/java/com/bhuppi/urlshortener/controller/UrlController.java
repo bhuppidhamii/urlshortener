@@ -1,13 +1,26 @@
 package com.bhuppi.urlshortener.controller;
 
+import java.net.URI;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bhuppi.urlshortener.dto.AnalyticsResponse;
 import com.bhuppi.urlshortener.dto.PageRequestDto;
 import com.bhuppi.urlshortener.dto.SearchResponse;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
 import com.bhuppi.urlshortener.dto.ShortenResponse;
 import com.bhuppi.urlshortener.dto.search.SearchFilterRequest;
-import com.bhuppi.urlshortener.enums.SortDirection;
-import com.bhuppi.urlshortener.enums.SortField;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.service.UrlService;
 
@@ -16,23 +29,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import java.net.URI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 @Tag(name = "URL Management", description = "Operations for creating, searching, and redirecting shortened URLs.")
 public class UrlController {
     private static final Logger logger = LoggerFactory.getLogger(UrlController.class);
-    
 
-    @Autowired
-    private UrlService urlService;
+    private final UrlService urlService;
 
     @Operation(summary = "Create a shortened URL", description = "Creates a new shortened URL from the provided original URL.")
     @ApiResponses({
@@ -40,9 +46,12 @@ public class UrlController {
             @ApiResponse(responseCode = "400", description = "Invalid URL provided")
     })
     @PostMapping("/shorten")
-    public ResponseEntity<ShortenResponse> shortenUrl(@Valid @RequestBody ShortenRequest request) {
+    public ResponseEntity<ShortenResponse> shortenUrl(
+            @Valid @RequestBody ShortenRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("Received request to shorten URL");
-        return ResponseEntity.ok(urlService.shortenUrl(request));
+        return ResponseEntity.ok(
+                urlService.shortenUrl(request, userDetails.getUsername()));
     }
 
     @GetMapping("/{shortCode}")

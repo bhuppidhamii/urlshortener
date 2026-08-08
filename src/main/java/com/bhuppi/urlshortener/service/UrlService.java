@@ -1,47 +1,56 @@
 package com.bhuppi.urlshortener.service;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import com.bhuppi.urlshortener.auth.entity.User;
+import com.bhuppi.urlshortener.auth.repository.UserRepository;
 import com.bhuppi.urlshortener.dto.PageRequestDto;
 import com.bhuppi.urlshortener.dto.ShortenRequest;
 import com.bhuppi.urlshortener.dto.ShortenResponse;
 import com.bhuppi.urlshortener.dto.search.SearchFilterRequest;
-
 import com.bhuppi.urlshortener.exception.UrlExpiredException;
 import com.bhuppi.urlshortener.exception.UrlNotFoundException;
 import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.repository.UrlRepository;
 import com.bhuppi.urlshortener.specification.UrlSpecification;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import java.time.LocalDateTime;
-import java.util.UUID;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class UrlService {
 
-    @Autowired
-    private UrlRepository urlRepository;
+    private final UrlRepository urlRepository;
+    private final UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UrlService.class);
 
-    public ShortenResponse shortenUrl(ShortenRequest request) {
-        Url url = new Url();
-        url.setOriginalUrl(request.getOriginalUrl());
-        url.setShortCode(UUID.randomUUID().toString().substring(0, 8));
-        url.setClickCount(0L);
+    public ShortenResponse shortenUrl(ShortenRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         LocalDateTime now = LocalDateTime.now();
-        url.setCreatedAt(now);
-        url.setExpiresAt(now.plusDays(request.getExpiresInDays()));
+        Url newUrl = Url.builder()
+                .originalUrl(request.getOriginalUrl())
+                .shortCode(UUID.randomUUID().toString().substring(0, 8))
+                .clickCount(0L)
+                .user(user)
+                .createdAt(now)
+                .expiresAt(now.plusDays(request.getExpiresInDays()))
+                .build();
 
         logger.info("Creating short URL for original URL: {}", request.getOriginalUrl());
 
-        Url savedUrl = urlRepository.save(url);
+        Url savedUrl = urlRepository.save(newUrl);
         logger.info("Successfully created short URL with code: {}", savedUrl.getShortCode());
         return ShortenResponse.builder()
                 .shortCode(savedUrl.getShortCode())
