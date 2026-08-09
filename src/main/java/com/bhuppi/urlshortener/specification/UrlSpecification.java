@@ -8,6 +8,7 @@ import com.bhuppi.urlshortener.model.Url;
 
 public class UrlSpecification {
     public static Specification<Url> hasKeyword(String keyword) {
+
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(
                 criteriaBuilder.lower(root.get("originalUrl")),
                 "%" + keyword.toLowerCase() + "%");
@@ -37,11 +38,6 @@ public class UrlSpecification {
                 root.get("expiresAt"),
                 date);
     }
-
-    public static Specification<Url> belongsToUser(String email) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                root.join("user").get("email"),
-                email);
-    }
+    
 
 }

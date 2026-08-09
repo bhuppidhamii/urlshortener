@@ -54,8 +54,7 @@ public class UrlController {
                 urlService.shortenUrl(request, userDetails.getUsername()));
     }
 
-    //    protected route
-    @GetMapping("/s/{shortCode}")
+    @GetMapping("/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
         String originalUrl = urlService.getOriginalUrl(shortCode);
         return ResponseEntity.status(302)
@@ -82,10 +81,9 @@ public class UrlController {
 
     @GetMapping("/search")
     public ResponseEntity<Page<SearchResponse>> searchUrls(
-            SearchFilterRequest searchFilter, PageRequestDto pageRequestDto,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            SearchFilterRequest searchFilter, PageRequestDto pageRequestDto) {
 
-        Page<Url> urls = urlService.searchUrls(searchFilter, pageRequestDto, userDetails.getUsername());
+        Page<Url> urls = urlService.searchUrls(searchFilter, pageRequestDto);
 
         Page<SearchResponse> response = urls.map(url -> SearchResponse.builder()
                 .originalUrl(url.getOriginalUrl())

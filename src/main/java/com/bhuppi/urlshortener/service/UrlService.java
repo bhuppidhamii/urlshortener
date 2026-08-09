@@ -78,18 +78,13 @@ public class UrlService {
         return url;
     }
 
-    public Page<Url> searchUrls(
-            SearchFilterRequest searchFilter,
-            PageRequestDto pageRequestDto,
-            String email) {
+    public Page<Url> searchUrls(SearchFilterRequest searchFilter, PageRequestDto pageRequestDto) {
 
         Sort sort = Sort.by(
                 pageRequestDto.getDirection().toSpringDirection(),
                 pageRequestDto.getSortField().getFieldName());
 
         Specification<Url> specification = Specification.unrestricted();
-        
-        specification = specification.and(UrlSpecification.belongsToUser(email));
 
         if (searchFilter.getKeyword() != null && !searchFilter.getKeyword().isBlank()) {
             specification = specification.and(
