@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,9 +60,11 @@ public class UrlService {
                 .build();
     }
 
+    @Cacheable(value = "urls", key = "'url:' + #shortCode")
     public String getOriginalUrl(String shortCode) {
+        logger.info("Fetching URL from PostgreSQL for shortCode: {}", shortCode);
         Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " ));
+                .orElseThrow(() -> new UrlNotFoundException("Short code not found: "));
 
         if (LocalDateTime.now().isAfter(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
