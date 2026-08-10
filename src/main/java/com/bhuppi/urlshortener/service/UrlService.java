@@ -61,7 +61,7 @@ public class UrlService {
 
     public String getOriginalUrl(String shortCode) {
         Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
+                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " ));
 
         if (LocalDateTime.now().isAfter(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
@@ -72,9 +72,9 @@ public class UrlService {
         return url.getOriginalUrl();
     }
 
-    public Url getAnalytics(String shortCode) {
-        Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
+    public Url getAnalytics(String shortCode, String email) {
+        Url url = urlRepository.findByShortCodeAndUserEmail(shortCode, email)
+                .orElseThrow(() -> new UrlNotFoundException("URL not found: " + shortCode));
         return url;
     }
 
@@ -88,7 +88,7 @@ public class UrlService {
                 pageRequestDto.getSortField().getFieldName());
 
         Specification<Url> specification = Specification.unrestricted();
-        
+
         specification = specification.and(UrlSpecification.belongsToUser(email));
 
         if (searchFilter.getKeyword() != null && !searchFilter.getKeyword().isBlank()) {
