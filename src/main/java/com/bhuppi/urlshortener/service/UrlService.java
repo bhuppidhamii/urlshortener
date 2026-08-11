@@ -1,11 +1,11 @@
 package com.bhuppi.urlshortener.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +33,7 @@ public class UrlService {
 
     private final UrlRepository urlRepository;
     private final UserRepository userRepository;
+    private final RedisService redisService;
     private static final Logger logger = LoggerFactory.getLogger(UrlService.class);
 
     public ShortenResponse shortenUrl(ShortenRequest request, String email) {
@@ -60,15 +61,33 @@ public class UrlService {
                 .build();
     }
 
-    @Cacheable(value = "urls", key = "'url:' + #shortCode")
     public String getOriginalUrl(String shortCode) {
-        logger.info("Fetching URL from PostgreSQL for shortCode: {}", shortCode);
+
+        String key = "url:" + shortCode;
+        String cachedUrl = redisService.get(key);
+
         Url url = urlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new UrlNotFoundException("Short code not found: "));
 
-        if (LocalDateTime.now().isAfter(url.getExpiresAt())) {
+        if (cachedUrl != null) { // hit
+            logger.info("Cache hit for shortCode: {}", shortCode);
+
+            url.setClickCount(url.getClickCount() + 1);
+            urlRepository.save(url);
+            return cachedUrl;
+        }
+        // miss
+        logger.info("Cache miss. Fetching URL from PostgreSQL for shortCode: {}", shortCode);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (!now.isBefore(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
         }
+
+        Duration ttl = Duration.between(now, url.getExpiresAt());
+        redisService.set(key, url.getOriginalUrl(), ttl);
+
         url.setClickCount(url.getClickCount() + 1);
         urlRepository.save(url);
 
