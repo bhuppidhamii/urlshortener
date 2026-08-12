@@ -25,6 +25,7 @@ import com.bhuppi.urlshortener.model.Url;
 import com.bhuppi.urlshortener.repository.UrlRepository;
 import com.bhuppi.urlshortener.specification.UrlSpecification;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -61,26 +62,27 @@ public class UrlService {
                 .build();
     }
 
+    @Transactional
     public String getOriginalUrl(String shortCode) {
 
         String key = "url:" + shortCode;
         String cachedUrl = redisService.get(key);
 
-        Url url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new UrlNotFoundException("Short code not found: "));
-
         if (cachedUrl != null) { // hit
             logger.info("Cache hit for shortCode: {}", shortCode);
 
-            url.setClickCount(url.getClickCount() + 1);
-            urlRepository.save(url);
+            urlRepository.incrementClickCount(shortCode);
             return cachedUrl;
         }
+
         // miss
         logger.info("Cache miss. Fetching URL from PostgreSQL for shortCode: {}", shortCode);
 
+        
+        Url url = urlRepository.findByShortCode(shortCode)
+        .orElseThrow(() -> new UrlNotFoundException("Short code not found: " + shortCode));
+        
         LocalDateTime now = LocalDateTime.now();
-
         if (!now.isBefore(url.getExpiresAt())) {
             throw new UrlExpiredException("This URL has expired.");
         }
@@ -88,8 +90,7 @@ public class UrlService {
         Duration ttl = Duration.between(now, url.getExpiresAt());
         redisService.set(key, url.getOriginalUrl(), ttl);
 
-        url.setClickCount(url.getClickCount() + 1);
-        urlRepository.save(url);
+        urlRepository.incrementClickCount(shortCode);
 
         return url.getOriginalUrl();
     }
