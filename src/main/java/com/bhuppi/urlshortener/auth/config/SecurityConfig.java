@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.bhuppi.urlshortener.auth.filter.JwtAuthenticationFilter;
+import com.bhuppi.urlshortener.auth.filter.RateLimitFilter;
 import com.bhuppi.urlshortener.auth.service.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
@@ -36,8 +38,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/s/*").permitAll()
                         .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider(customUserDetailsService, passwordEncoder()))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(
+                    authenticationProvider(customUserDetailsService, passwordEncoder()))
+                .addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(rateLimitFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

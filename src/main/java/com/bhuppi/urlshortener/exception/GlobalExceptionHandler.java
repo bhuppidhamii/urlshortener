@@ -71,4 +71,11 @@ public class GlobalExceptionHandler {
                                 HttpStatus.UNAUTHORIZED,
                                 "Invalid email or password.");
         }
+
+        @ExceptionHandler(RateLimitServiceUnavailableException.class)
+        public ResponseEntity<ErrorResponse> handleRateLimitException(RateLimitServiceUnavailableException ex) {
+                return buildErrorResponse(
+                                HttpStatus.TOO_MANY_REQUESTS,
+                                "Too many Requestx");
+        }
 }
